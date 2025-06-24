@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { View, Text, StyleSheet, TextInput, Button, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker'; // Untuk pilihan metode pembayaran
 import { Colors, Theme } from '../constants/Colors';
 import { useAuth } from '../context/AuthContext';
+import { WebView } from 'react-native-webview';
 
 const API_BASE_URL = 'http://localhost:5000/api'; // Ganti dengan IP lokal Anda jika perlu
 
-export default function OrderFormScreen({ navigation }) {
+// PaymentScreen Component - untuk menampilkan WebView Midtrans
+const PaymentScreen = ({ route }) => {
+  const { uri } = route.params;
+  return <WebView source={{ uri }} />; // Menampilkan URL pembayaran di WebView
+};
+
+export default function OrderFormScreen() {
   const { userToken } = useAuth();
+  const navigation = useNavigation();
   const [itemDescription, setItemDescription] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [estimatedBudget, setEstimatedBudget] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [customerNotes, setCustomerNotes] = useState('');
-  // Untuk MVP, upload foto akan di-mock atau diabaikan sementara
-  // const [itemImageUrl, setItemImageUrl] = useState('');
-  // const [pickupLocation, setPickupLocation] = useState('');
 
   const handleSubmitOrder = async () => {
     if (!itemDescription || !deliveryAddress || !estimatedBudget || !paymentMethod) {
@@ -43,8 +49,33 @@ export default function OrderFormScreen({ navigation }) {
 
       if (response.ok) {
         Alert.alert('Sukses', data.message || 'Pesanan berhasil dibuat!');
-        // TODO: Redirect ke halaman tracking atau daftar pesanan aktif
-        navigation.navigate('OrdersCustomer'); // Contoh navigasi setelah order dibuat
+
+        // Inisialisasi pembayaran setelah order dibuat
+        try {
+          const paymentResponse = await fetch(`${API_BASE_URL}/orders/${data.order._id}/initiate-payment`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${userToken}`,
+            },
+          });
+
+          const paymentData = await paymentResponse.json();
+
+          if (paymentResponse.ok) {
+            // Navigasi ke PaymentScreen dengan URL pembayaran dari Midtrans
+            navigation.navigate('PaymentScreen', { uri: paymentData.redirect_url });
+
+          } else {
+            Alert.alert('Gagal memulai pembayaran', paymentData.message || 'Terjadi kesalahan saat memulai pembayaran.');
+            navigation.navigate('OrdersCustomer'); // Navigasi kembali jika gagal memulai pembayaran
+          }
+        } catch (paymentError) {
+          console.error('Error initiating payment:', paymentError);
+          Alert.alert('Error', 'Tidak dapat terhubung ke server untuk memulai pembayaran.');
+          navigation.navigate('OrdersCustomer');
+        }
+
       } else {
         Alert.alert('Gagal', data.message || 'Terjadi kesalahan saat membuat pesanan.');
       }
