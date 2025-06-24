@@ -18,24 +18,36 @@ export const NotificationProvider = ({ children }) => {
     if (isConnected && socket) {
       // Listen for order status updates that require customer confirmation/notification
       socket.on('order_status_update', (data) => {
-        // Example: Driver confirmed different price
-        if (data.newStatus === 'price_change_awaiting_customer_confirmation') { // Assuming a new status for this
-          showModal({
-            type: 'confirmation',
-            title: 'Konfirmasi Harga Pesanan',
-            message: `Driver menemukan harga berbeda untuk pesanan Anda #${data.orderId.substring(0,6)}. Harga baru: Rp ${data.actualPrice.toLocaleString('id-ID')}. Setuju?`,
-            actions: [
-              { text: 'Batalkan Pesanan', type: 'cancel', onPress: () => handleOrderAction(data.orderId, 'cancel', userToken) },
-              { text: 'Setuju', type: 'confirm', onPress: () => handleOrderAction(data.orderId, 'confirm_price', userToken) }, // New API for price confirmation
-            ],
-          });
-        } else if (data.newStatus === 'driver_found') {
-             showModal({
+        if (data && data.newStatus) { // Ensure data and newStatus exist
+          // Example: Driver confirmed different price
+          if (data.newStatus === 'price_change_awaiting_customer_confirmation') { // Assuming a new status for this
+            if (data.orderId && data.actualPrice) { // Ensure orderId and actualPrice exist
+              showModal({
+                type: 'confirmation',
+                title: 'Konfirmasi Harga Pesanan',
+                message: `Driver menemukan harga berbeda untuk pesanan Anda #${data.orderId.substring(0, 6)}. Harga baru: Rp ${data.actualPrice.toLocaleString('id-ID')}. Setuju?`,
+                actions: [
+                  { text: 'Batalkan Pesanan', type: 'cancel', onPress: () => handleOrderAction(data.orderId, 'cancel', userToken) },
+                  { text: 'Setuju', type: 'confirm', onPress: () => handleOrderAction(data.orderId, 'confirm_price', userToken) }, // New API for price confirmation
+                ],
+              });
+            } else {
+              console.warn('Missing orderId or actualPrice in price_change_awaiting_customer_confirmation event');
+            }
+          } else if (data.newStatus === 'driver_found') {
+            if (data.orderId){ // Check if orderId exists
+              showModal({
                 type: 'info',
                 title: 'Driver Ditemukan!',
-                message: `Pesanan Anda #${data.orderId.substring(0,6)} telah diterima oleh driver.`, 
-             });
-        } 
+                message: `Pesanan Anda #${data.orderId.substring(0, 6)} telah diterima oleh driver.`, 
+              });
+            } else {
+              console.warn('Missing orderId in driver_found event');
+            }
+          }
+        } else {
+          console.warn('Missing data or newStatus in order_status_update event');
+        }
         // Add other relevant notifications
       });
 

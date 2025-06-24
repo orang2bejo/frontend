@@ -37,11 +37,17 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (response.ok) {
-        await AsyncStorage.setItem('userToken', data.token);
-        await AsyncStorage.setItem('userRole', data.role);
-        setUserToken(data.token);
-        setUserRole(data.role);
-        return { success: true, role: data.role };
+        // Check if token and role are present in the response
+        if (data.token && data.role) {
+          await AsyncStorage.setItem('userToken', data.token);
+          await AsyncStorage.setItem('userRole', data.role);
+          setUserToken(data.token);
+          setUserRole(data.role);
+          return { success: true, role: data.role };
+        } else {
+          console.warn('Token or role missing in login response');
+          return { success: false, message: 'Invalid credentials received' };
+        }
       } else {
         return { success: false, message: data.message || 'Login failed' };
       }
@@ -66,11 +72,17 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (response.ok) {
-        await AsyncStorage.setItem('userToken', data.token);
-        await AsyncStorage.setItem('userRole', data.role);
-        setUserToken(data.token);
-        setUserRole(data.role);
-        return { success: true, role: data.role };
+           // Check if token and role are present in the response
+          if (data.token && data.role) {
+            await AsyncStorage.setItem('userToken', data.token);
+            await AsyncStorage.setItem('userRole', data.role);
+            setUserToken(data.token);
+            setUserRole(data.role);
+            return { success: true, role: data.role };
+          } else {
+            console.warn('Token or role missing in register response');
+            return { success: false, message: 'Invalid data received from server' };
+          }
       } else {
         return { success: false, message: data.message || 'Registration failed' };
       }
