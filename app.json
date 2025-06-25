@@ -16,14 +16,20 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "Orangbejo.JastipDigital",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCsjz9ari9ISwfxXLzyJs90VK8A1m23-Hc"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": [
+    "plugins": [ 
       "expo-router",
       [
         "expo-splash-screen",
