@@ -72,3 +72,38 @@ export interface HallOfFameData {
   recent_winners: HallOfFameWinner[];
   milestone_progress: MilestoneProgress;
 }
+
+export interface Quote {
+  id: string;
+  mitra_id: string;
+  mitra_name: string; // denormalized for easy display
+  quoted_price: number;
+  estimated_duration: string;
+  notes: string;
+}
+
+export interface SpecialistOrder {
+  id: string;
+  created_date: string;
+  customer_id: string;
+  mitra_id?: string;
+  service_type: string;
+  problem_description: string;
+  status: 'pending' | 'quoted' | 'accepted' | 'in_progress' | 'completed' | 'cancelled' | string;
+  quotes: Quote[]; // Array dari penawaran
+  final_agreed_price?: number;
+}
+
+export interface MitraSpecialist {
+  id: string;
+  full_name: string;
+  business_name?: string;
+  rating: number;
+  total_jobs: number;
+}
+
+export interface MitraReview {
+  id: string;
+  rating: number;
+  comment: string;
+}

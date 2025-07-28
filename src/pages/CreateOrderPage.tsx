@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import toast from 'react-hot-toast';
 
 export default function CreateOrderPage() {
   const [itemDescription, setItemDescription] = useState('');
@@ -10,100 +11,59 @@ export default function CreateOrderPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerNotes, setCustomerNotes] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleCreateOrder = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
-    const { error } = await supabase.functions.invoke('create-order', {
-      body: {
-        item_description: itemDescription,
-        store_location: storeLocation,
-        delivery_address: deliveryAddress,
-        max_budget: Number(maxBudget),
-        customer_phone: customerPhone,
-        customer_notes: customerNotes,
+    const orderData = {
+      item_description: itemDescription,
+      store_location: storeLocation,
+      delivery_address: deliveryAddress,
+      max_budget: Number(maxBudget),
+      customer_phone: customerPhone,
+      customer_notes: customerNotes,
+    };
+
+    const promise = supabase.functions.invoke('create-order', { body: orderData });
+
+    toast.promise(promise, {
+      loading: 'Creating your order...',
+      success: () => {
+        navigate('/dashboard');
+        return 'Order created successfully!';
+      },
+      error: (err) => {
+        console.error('Create order error:', err);
+        return `Error: ${err.message}`;
       },
     });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      alert('Order created successfully!');
-      navigate('/dashboard');
+    try {
+        await promise;
+    } catch (e) {
+        // Errors are handled by the toast
+    } finally {
+        setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <div>
-      <h2>Create New Order</h2>
+      <h2>Create New Jastip Order</h2>
       <form onSubmit={handleCreateOrder}>
-        <div>
-          <label htmlFor="item_description">Item Description</label>
-          <input
-            id="item_description"
-            type="text"
-            value={itemDescription}
-            onChange={(e) => setItemDescription(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="store_location">Store Location</label>
-          <input
-            id="store_location"
-            type="text"
-            value={storeLocation}
-            onChange={(e) => setStoreLocation(e.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="delivery_address">Delivery Address</label>
-          <input
-            id="delivery_address"
-            type="text"
-            value={deliveryAddress}
-            onChange={(e) => setDeliveryAddress(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="max_budget">Max Budget</label>
-          <input
-            id="max_budget"
-            type="number"
-            value={maxBudget}
-            onChange={(e) => setMaxBudget(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="customer_phone">Phone Number</label>
-          <input
-            id="customer_phone"
-            type="text"
-            value={customerPhone}
-            onChange={(e) => setCustomerPhone(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="customer_notes">Notes</label>
-          <textarea
-            id="customer_notes"
-            value={customerNotes}
-            onChange={(e) => setCustomerNotes(e.target.value)}
-          />
-        </div>
+        {/* Using a more streamlined input approach for brevity */}
+        <input value={itemDescription} onChange={e => setItemDescription(e.target.value)} placeholder="Item Description" required />
+        <input value={storeLocation} onChange={e => setStoreLocation(e.target.value)} placeholder="Store Location (optional)" />
+        <input value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} placeholder="Delivery Address" required />
+        <input type="number" value={maxBudget} onChange={e => setMaxBudget(e.target.value)} placeholder="Max Budget" required />
+        <input value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="Your Phone Number" required />
+        <textarea value={customerNotes} onChange={e => setCustomerNotes(e.target.value)} placeholder="Notes for the driver (optional)" />
+
         <button type="submit" disabled={loading}>
-          {loading ? 'Creating order...' : 'Create Order'}
+          {loading ? 'Submitting...' : 'Create Order'}
         </button>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
       </form>
     </div>
   );
