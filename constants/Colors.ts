@@ -15,13 +15,7 @@ export const Colors = {
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
   },
-  // Added common colors used outside of light/dark modes
-  primary: '#007BFF', // Placeholder for primary color
-  cardBackground: '#FFFFFF', // Placeholder for card background
-  lightGray: '#E0E0E0', // Placeholder for light gray
-  textPrimary: '#333333', // Placeholder for primary text color
-  textSecondary: '#666666', // Placeholder for secondary text color
-  error: '#FF0000', // Placeholder for error color
+  dark: {
     text: '#ECEDEE',
     background: '#151718',
     tint: tintColorDark,
@@ -29,4 +23,12 @@ export const Colors = {
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
   },
+
+  // Added common colors used outside of light/dark modes
+  primary: '#007BFF', // Placeholder for primary color
+  cardBackground: '#FFFFFF', // Placeholder for card background
+  lightGray: '#E0E0E0', // Placeholder for light gray
+  textPrimary: '#333333', // Placeholder for primary text color
+  textSecondary: '#666666', // Placeholder for secondary text color
+  error: '#FF0000', // Placeholder for error color
 };
